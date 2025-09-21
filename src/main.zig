@@ -1,4 +1,5 @@
 const std = @import("std");
+const builtin = @import("builtin");
 
 // CPWD - Copy Present Working Directory
 // 1. Get current working directory path
@@ -13,7 +14,7 @@ pub fn main() !void {
     const cwd = try std.fs.cwd().realpathAlloc(allocator, ".");
     defer allocator.free(cwd);
 
-    const clipboard_cmd = switch (@import("builtin").os.tag) {
+    const clipboard_cmd = switch (builtin.os.tag) {
         .macos => "pbcopy",
         .linux => blk: {
             if (isCommandAvailable(allocator, "wl-copy")) {
