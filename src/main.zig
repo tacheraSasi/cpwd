@@ -39,7 +39,7 @@ pub fn main() !void {
 
     _ = try process.wait();
 
-    const stdout = std.io.getStdOut().writer();
+    const stdout = std.io.stdout.writer();
     try stdout.print("Copied: {s}\n", .{cwd});
 }
 
