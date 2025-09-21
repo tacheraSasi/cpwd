@@ -1,27 +1,55 @@
 const std = @import("std");
-const cpwd = @import("cpwd");
 
 pub fn main() !void {
-    // Prints to stderr, ignoring potential errors.
-    std.debug.print("All your {s} are belong to us.\n", .{"codebase"});
-    try cpwd.bufferedPrint();
-}
+    // Get the allocator
+    const allocator = std.heap.page_allocator;
 
-test "simple test" {
-    const gpa = std.testing.allocator;
-    var list: std.ArrayList(i32) = .empty;
-    defer list.deinit(gpa); // Try commenting this out and see if zig detects the memory leak!
-    try list.append(gpa, 42);
-    try std.testing.expectEqual(@as(i32, 42), list.pop());
-}
+    // Get the current working directory
+    const cwd = try std.fs.cwd().realpathAlloc(allocator, ".");
+    defer allocator.free(cwd);
 
-test "fuzz example" {
-    const Context = struct {
-        fn testOne(context: @This(), input: []const u8) anyerror!void {
-            _ = context;
-            // Try passing `--fuzz` to `zig build test` and see if it manages to fail this test case!
-            try std.testing.expect(!std.mem.eql(u8, "canyoufindme", input));
-        }
+    // Determine the operating system and appropriate clipboard command
+    const clipboard_cmd = switch (@import("builtin").os.tag) {
+        .macos => "pbcopy",
+        .linux => blk: {
+            // Check if wl-copy is available (Wayland)
+            if (isCommandAvailable(allocator, "wl-copy")) {
+                break :blk "wl-copy";
+            }
+            // Fall back to xclip for X11
+            if (isCommandAvailable(allocator, "xclip")) {
+                break :blk "xclip -selection clipboard";
+            }
+            return error.NoClipboardTool;
+        },
+        else => return error.UnsupportedOS,
     };
-    try std.testing.fuzz(Context{}, Context.testOne, .{});
+
+    // Opens a pipe to the clipboard command
+    var process = std.process.Child.init(&[_][]const u8{clipboard_cmd}, allocator);
+    process.stdin_behavior = .Pipe;
+
+    // Spawn the process
+    try process.spawn();
+
+    // Write the current working directory to the clipboard
+    try process.stdin.?.writeAll(cwd);
+    process.stdin.?.close();
+    process.stdin = null;
+
+    // Wait for the process to finish
+    _ = try process.wait();
+
+    // Print confirmation
+    const stdout = std.io.getStdOut().writer();
+    try stdout.print("Copied: {s}\n", .{cwd});
+}
+
+// Check if a command is available on the system
+fn isCommandAvailable(allocator: std.mem.Allocator, cmd: []const u8) bool {
+    var process = std.process.Child.init(&[_][]const u8{ "which", cmd }, allocator);
+    process.stdout_behavior = .Ignore;
+    process.stderr_behavior = .Ignore;
+    const result = process.spawnAndWait() catch return false;
+    return result.Exited == 0;
 }
