@@ -1,5 +1,6 @@
 const std = @import("std");
 const builtin = @import("builtin");
+const print = std.debug.print;
 
 // CPWD - Copy Present Working Directory
 // 1. Get current working directory path
@@ -39,8 +40,7 @@ pub fn main() !void {
 
     _ = try process.wait();
 
-    const stdout = std.io.stdout.writer();
-    try stdout.print("Copied: {s}\n", .{cwd});
+    print("Copied: {s}\n", .{cwd});
 }
 
 fn isCommandAvailable(allocator: std.mem.Allocator, cmd: []const u8) bool {
