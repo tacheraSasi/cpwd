@@ -3,7 +3,12 @@
     .version = "0.2.0",
     .fingerprint = 0x7687a5d18cb3e32e,
     .minimum_zig_version = "0.16.0",
-    .dependencies = .{},
+    .dependencies = .{
+        .stdio = .{
+            .url = "https://github.com/tacheraSasi/stdio-zig/archive/refs/heads/main.tar.gz",
+            .hash = "stdio-0.0.2-lL7pxQMuAADMakF92kHD_qbv04s0LM2i62l0ueOmLBUM",
+        },
+    },
     .paths = .{
         "build.zig",
         "build.zig.zon",
