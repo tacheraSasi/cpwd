@@ -1,10 +1,16 @@
 const std = @import("std");
+const stdio = @import("stdio");
 const builtin = @import("builtin");
-const print = std.debug.print;
 
 pub fn main(init: std.process.Init) !void {
     const allocator = init.gpa;
     const io = init.io;
+
+    var write_buf: [4096]u8 = undefined;
+    var read_buf: [4096]u8 = undefined;
+
+    var console: stdio.Console = undefined;
+    console.init(io, &write_buf, &read_buf);
 
     const cwd = try std.process.currentPathAlloc(io, allocator);
     defer allocator.free(cwd);
@@ -34,7 +40,7 @@ pub fn main(init: std.process.Init) !void {
 
     _ = try child.wait(io);
 
-    print("Copied: {s}\n", .{cwd});
+    try console.printLine("Copied: {s}\n", .{cwd});
 }
 
 fn isCommandAvailable(io: std.Io, cmd: []const u8) bool {
