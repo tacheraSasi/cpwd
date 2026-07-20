@@ -7,7 +7,7 @@ A simple Zig CLI tool to copy the absolute path of your current working director
 - Auto-detects OS and clipboard tool.
 - Prints confirmation with the copied path.
 - Lightweight and fast.
-- Minimal memory footprint — see [Memory Usage](#memory-usage).
+- Minimal memory footprint see [Memory Usage](#memory-usage).
 
 ## Prerequisites
 
@@ -18,7 +18,7 @@ A simple Zig CLI tool to copy the absolute path of your current working director
 
 ## Build & Install
 
-1. Ensure Zig 0.15+ is installed.
+1. Ensure Zig 0.16+ is installed.
 2. Clone or save `src/main.zig`.
 3. Build: `zig build` (or `zig build-exe src/main.zig`).
 4. Install: `sudo ./cpwd /usr/local/bin/`.
