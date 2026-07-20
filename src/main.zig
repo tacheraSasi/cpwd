@@ -2,17 +2,9 @@ const std = @import("std");
 const builtin = @import("builtin");
 const print = std.debug.print;
 
-// CPWD - Copy Present Working Directory
-// 1. Get current working directory path
-// 2. Detect operating system (macOS, Linux, or other)
-// 3. Choose appropriate clipboard command based on OS
-// 4. Create child process with clipboard command
-// 5. Pipe the directory path to clipboard
-// 6. Confirm operation completed successfully
-
-pub fn main() !void {
-    const allocator = std.heap.page_allocator;
-    const cwd = try std.fs.cwd().realpathAlloc(allocator, ".");
+pub fn main(init: std.process.Init) !void {
+    const allocator = init.gpa;
+    const cwd = try std.Io.Dir.cwd();
     defer allocator.free(cwd);
 
     const clipboard_cmd = switch (builtin.os.tag) {
