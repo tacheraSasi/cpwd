@@ -6,8 +6,8 @@ pub fn main(init: std.process.Init) !void {
     const allocator = init.gpa;
     const io = init.io;
 
-    var write_buf: [4096]u8 = undefined;
-    var read_buf: [4096]u8 = undefined;
+    var write_buf: [std.Io.Dir.max_path_bytes + 16]u8 = undefined;
+    var read_buf: [256]u8 = undefined;
 
     var console: stdio.Console = undefined;
     console.init(io, &write_buf, &read_buf);
