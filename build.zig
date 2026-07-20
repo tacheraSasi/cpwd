@@ -23,6 +23,12 @@ pub fn build(b: *std.Build) void {
 
     b.installArtifact(exe);
 
+    const stdio_dep = b.dependency("stdio", .{
+        .target = target,
+        .optimize = optimize,
+    });
+    exe.root_module.addImport("stdio", stdio_dep.module("stdio"));
+
     const run_step = b.step("run", "Run the app");
 
     const run_cmd = b.addRunArtifact(exe);
