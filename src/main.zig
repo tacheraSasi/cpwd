@@ -2,51 +2,51 @@ const std = @import("std");
 const builtin = @import("builtin");
 const print = std.debug.print;
 
-// CPWD - Copy Present Working Directory
-// 1. Get current working directory path
-// 2. Detect operating system (macOS, Linux, or other)
-// 3. Choose appropriate clipboard command based on OS
-// 4. Create child process with clipboard command
-// 5. Pipe the directory path to clipboard
-// 6. Confirm operation completed successfully
+pub fn main(init: std.process.Init) !void {
+    const allocator = init.gpa;
+    const io = init.io;
 
-pub fn main() !void {
-    const allocator = std.heap.page_allocator;
-    const cwd = try std.fs.cwd().realpathAlloc(allocator, ".");
+    const cwd = try std.process.currentPathAlloc(io, allocator);
     defer allocator.free(cwd);
 
-    const clipboard_cmd = switch (builtin.os.tag) {
-        .macos => "pbcopy",
+    const argv: []const []const u8 = switch (builtin.os.tag) {
+        .macos => &[_][]const u8{"pbcopy"},
         .linux => blk: {
-            if (isCommandAvailable(allocator, "wl-copy")) {
-                break :blk "wl-copy";
+            if (isCommandAvailable(io, "wl-copy")) {
+                break :blk &[_][]const u8{"wl-copy"};
             }
-            if (isCommandAvailable(allocator, "xclip")) {
-                break :blk "xclip -selection clipboard";
+            if (isCommandAvailable(io, "xclip")) {
+                break :blk &[_][]const u8{ "xclip", "-selection", "clipboard" };
             }
             return error.NoClipboardTool;
         },
         else => return error.UnsupportedOS,
     };
 
-    var process = std.process.Child.init(&[_][]const u8{clipboard_cmd}, allocator);
-    process.stdin_behavior = .Pipe;
+    var child = try std.process.spawn(io, .{
+        .argv = argv,
+        .stdin = .pipe,
+    });
 
-    try process.spawn();
+    try std.Io.File.writeStreamingAll(child.stdin.?, io, cwd);
+    std.Io.File.close(child.stdin.?, io);
+    child.stdin = null;
 
-    try process.stdin.?.writeAll(cwd);
-    process.stdin.?.close();
-    process.stdin = null;
-
-    _ = try process.wait();
+    _ = try child.wait(io);
 
     print("Copied: {s}\n", .{cwd});
 }
 
-fn isCommandAvailable(allocator: std.mem.Allocator, cmd: []const u8) bool {
-    var process = std.process.Child.init(&[_][]const u8{ "which", cmd }, allocator);
-    process.stdout_behavior = .Ignore;
-    process.stderr_behavior = .Ignore;
-    const result = process.spawnAndWait() catch return false;
-    return result.Exited == 0;
+fn isCommandAvailable(io: std.Io, cmd: []const u8) bool {
+    var child = std.process.spawn(io, .{
+        .argv = &[_][]const u8{ "which", cmd },
+        .stdin = .ignore,
+        .stdout = .ignore,
+        .stderr = .ignore,
+    }) catch return false;
+    const term = child.wait(io) catch return false;
+    return switch (term) {
+        .exited => |code| code == 0,
+        else => false,
+    };
 }
