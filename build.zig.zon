@@ -6,7 +6,7 @@
     .dependencies = .{
         .stdio = .{
             .url = "https://github.com/tacheraSasi/stdio-zig/archive/refs/heads/main.tar.gz",
-            .hash = "stdio-0.0.2-lL7pxQMuAADMakF92kHD_qbv04s0LM2i62l0ueOmLBUM",
+            .hash = "stdio-0.0.2-lL7pxUw4AADgqDLMsO72wUZESOxlygxFPdkoYFxMITdO",
         },
     },
     .paths = .{
