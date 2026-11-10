@@ -2,7 +2,7 @@
     .name = .cpwd,
     .version = "0.2.0",
     .fingerprint = 0x7687a5d18cb3e32e,
-    .minimum_zig_version = "0.16.0",
+    .minimum_zig_version = "0.17.0",
     .dependencies = .{
         .stdio = .{
             .url = "https://github.com/tacheraSasi/stdio-zig/archive/refs/heads/main.tar.gz",

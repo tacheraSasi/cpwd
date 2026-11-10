@@ -1,6 +1,7 @@
 const std = @import("std");
-const stdio = @import("stdio");
 const builtin = @import("builtin");
+
+const stdio = @import("stdio");
 
 pub fn main(init: std.process.Init) !void {
     const allocator = init.gpa;
@@ -15,7 +16,7 @@ pub fn main(init: std.process.Init) !void {
     const cwd = try std.process.currentPathAlloc(io, allocator);
     defer allocator.free(cwd);
 
-    const argv: []const []const u8 = switch (builtin.os.tag) {
+    const argv: []const []const u8 = switch (builtin.target.os.tag) {
         .macos => &[_][]const u8{"pbcopy"},
         .linux => blk: {
             if (isCommandAvailable(io, "wl-copy")) {
